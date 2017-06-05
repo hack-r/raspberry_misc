@@ -1,0 +1,63 @@
+/etc/rc.local
+
+The commands in this file are executed when your Pi boots up, before any users have logged in. You can either put your commands in here directly, or you can execute a script that is elsewhere on your Pi. However, as nobody is logged in at that point, you have to use completely explicit folder paths.
+
+For example, it can be very useful to display the IP address of your Pi on the command line screen if you are not booting into desktop mode. You'll be able to see it right at the end of the boot, just before it requests your username.  Edit the rc.local file with:
+
+    sudo nano /etc/rc.local
+
+Just before the exit 0, add the following:
+
+    # Print the IP address
+    _IP=$(hostname -I) || true
+    if [ "$_IP" ]; then
+        printf "My IP address is %s\n" "$_IP"
+    fi
+
+As usual with nano, save the file and exit with Ctrl+X, Y then Return.
+
+The first line (starting with a #) is a comment. The next line sets the shell script variable _IP to be the IP address of your Pi (if it has one).  If it does, then the if clause prints 'My IP address is xxx.xxx.xxx.xxx'.
+
+Now every time you boot you will see your IP address displayed.
+
+Alternatively you can create a shell script that will run on every boot.  This will need to go into a known location, so assuming you are logged in as 'pi', use:
+
+    cd ~
+
+This will take you to the /home/pi folder on your Raspberry Pi, which is the 'home' directory of the user called 'pi'.
+
+Now create a new script:
+
+    touch startup.sh
+    nano startup.sh
+
+And add the following text into the file:
+
+    #! /bin/sh
+    # Print the IP address
+    _IP=$(hostname -I) || true
+    if [ "$_IP" ]; then
+        printf "My IP address is %s\n" "$_IP"
+    fi
+
+Save the file and exit with Ctrl+X, Y then Return.
+
+Now you need to make the file executable.
+
+    chmod +x startup.sh
+
+And edit the /etc/rc.local file again with:
+
+    sudo nano /etc/rc.local
+
+Remove the code you added in the first step and replace it with:
+
+    /home/pi/startup.sh
+
+Save the file and exit with Ctrl+X, Y then Return.
+
+You will now see your IP address when you boot again.  Try it.
+
+This works well for anything that runs for a finite time, but if you run something that keeps on running, and still want to take control of your Pi, you need to add the '&' symbol to the end of the line.  For example, if you have a python script called MyPiScript.py, then the line in /etc/rc.local would look like this:
+
+    /home/pi/startup.sh &
